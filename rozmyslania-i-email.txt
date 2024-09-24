@@ -1,0 +1,25 @@
+screeny wykresów ITD i ILD
+model będzie miał zapewne problem z rozpoznawaniem kątów tam gdzie są przeskoki
+mogę spróbować drzewa, knn i jeszcze jakie tam inne liniowe były
+czy nie będzie potrzebne użycie np spektrogramów czy coś , albo obliczenie ITD dla danych częstotliwości a nie całego wykresu, czy dodać ciszę na początku?
+mogę przesłać wyniki predykcji - tabelkę
+
+ITD liczę poprzez użycie korelacji krzyżowej i correlation lag
+ILD poprzez podzielenie lewego kanału na prawy
+
+do zrobienia:
+aplikacja w której kompas się rusza
+
+Zakres:
+Przegląd stanu techniki oraz wiedzy z dziedziny automatycznego lokalizowania mówców przy użyciu sygnałów binauralnych
+Opracowanie algorytmu lokalizowania mówców
+Projekt i implementacja aplikacji do automatycznego lokalizowania mówców w czasie quasi-rzeczywistym
+Testy i udokumentowanie wyników
+
+48 kHz pozwala na próbkowanie co 21 mikro sekund
+
+wykresy ILD takie same dla różnych baz
+ale dlaczego ITD różne? pewnie dlatego że korzystam z korelacji krzyżowej
+czy nie lepiej obliczyć ILD i ITD bezpośrednio na odpowiedziach hrtf?
+
+jeśli chciałbym obliczyć dokładniejsze wartości kątów to wtedy powinienem użyć spektrogramów albo liczyć ILD i ITD według zaleceń czyli dla częstotliwości >1500 i <1000Hz a pomiędzy obydwa
