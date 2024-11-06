@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import scipy.io.wavfile as wav
 import sofar as sf
 import soundfile
+from pydub import AudioSegment
 
 sampleRate = 48000
 #bits = 24
@@ -76,6 +77,16 @@ def set_range(angle):
         realAngle = 360-angle
     return realAngle
 
+def normalize(signal1, signal2):
+    # signal1 = map(signal1, signal1*2)
+    # signal2 = map(signal2, signal2*2)
+    signal1 *= 4
+    signal2 *= 4
+    return signal1, signal2
+
+def match_target_amplitude(sound, target_dBFS):
+    change_in_dBFS = target_dBFS - sound.dBFS
+    return sound.apply_gain(change_in_dBFS)
 
 def iterate_convolute_save(monoSignal, sofa, path):
     # zakres od -90 do 90 stopni
@@ -86,6 +97,7 @@ def iterate_convolute_save(monoSignal, sofa, path):
         hrtfResponse = sofa.Data_IR[sourceIndexes[0][0]]
         convolvedLeft = np.convolve(monoSignal, hrtfResponse[0])
         convolvedRight = np.convolve(monoSignal, hrtfResponse[1])
+        convolvedLeft, convolvedRight = normalize(convolvedLeft, convolvedRight)
         convolved = np.array([convolvedLeft, convolvedRight])
 
         if convolved.shape[0] == 2:
@@ -118,7 +130,7 @@ whiteNoiseSignal = generate_white_noise()
 #whiteNoiseSignal = load_sound("./files/applause-mono-24bit-48khz.wav")
 applauseSignal = load_sound("./files/applause-mono-24bit-48khz.wav")[0]
 # print(applauseSignal[0].shape, whiteNoiseSignal.shape, applauseSignal[0].dtype, whiteNoiseSignal.dtype)
-# draw_plots(whiteNoiseSignal, applauseSignal[0])
+draw_plots(whiteNoiseSignal, applauseSignal)
 #draw_plot(whiteNoiseSignal)
 
 #sofa = sf.Sofa("SimpleFreeFieldHRIR")
@@ -128,13 +140,13 @@ sofa = sf.read_sofa(sofaPath)
 #sofa.list_dimensions
 
 #
-iterate_convolute_save(whiteNoiseSignal, sofa, "./files/noiseDB/")
-iterate_convolute_save(applauseSignal, sofa, "./files/applauseDB")
+# iterate_convolute_save(whiteNoiseSignal, sofa, "./files/noiseDB/")
+# iterate_convolute_save(applauseSignal, sofa, "./files/applauseDB/")
 # kluczowe dane
 #print(sofa.Data_IR[0])
 
 # wykres
-#draw_plots(sofa.Data_IR[12][0], sofa.Data_IR[12][1])
+# draw_plots(sofa.Data_IR[12][0], sofa.Data_IR[12][1])
 
 # [ azymut, kat do horyzontu, elewacja w m]
 # co 24, a potem 22 nowy kat?
@@ -143,34 +155,38 @@ iterate_convolute_save(applauseSignal, sofa, "./files/applauseDB")
 #print(sofa.Data_IR.where())
 
 # zapis kata potrzebny do SADIE
-# randAngle = get_random_angle()
+randAngle = get_random_angle()
 # zapis ladny
-# realAngle = set_range(randAngle)
+realAngle = set_range(randAngle)
 #print(randAngle)
 #print(realAngle)
-# sourceIndexes = np.where(sofa.SourcePosition == randAngle)
+sourceIndexes = np.where(sofa.SourcePosition == randAngle)
 #print(sofa.SourcePosition[sourceIndexes[0]])
 
-# hrtfResponse = sofa.Data_IR[sourceIndexes[0][0]]
-#print(hrtfResponse)
+hrtfResponse = sofa.Data_IR[sourceIndexes[0][0]]
+# print(hrtfResponse)
 # convolvedLeft = np.convolve(whiteNoiseSignal[0], hrtfResponse[0])
 # convolvedRight = np.convolve(whiteNoiseSignal[0], hrtfResponse[1])
 
-# convolvedLeft = np.convolve(whiteNoiseSignal, hrtfResponse[0])
-# convolvedRight = np.convolve(whiteNoiseSignal, hrtfResponse[1])
+#normalized_sound = match_target_amplitude(whiteNoiseSignal, -20.0)
+
+convolvedLeft = np.convolve(whiteNoiseSignal, hrtfResponse[0])
+convolvedRight = np.convolve(whiteNoiseSignal, hrtfResponse[1])
+
+convolvedLeft, convolvedRight = normalize(convolvedLeft, convolvedRight, target_dBFS=1.0)
 
 #convolvedLeft = convert_to_24bit(convolvedLeft)
 #convolvedRight = convert_to_24bit(convolvedRight)
 
-# convolved = np.array([convolvedLeft, convolvedRight])
+convolved = np.array([convolvedLeft, convolvedRight])
 #print(convolved.shape)
 #print(convolved.dtype)
 
-# if convolved.shape[0] == 2:
-#     convolved = convolved.T
+if convolved.shape[0] == 2:
+    convolved = convolved.T
 
 # print(convolved.shape)
-# draw_plots(hrtfResponse[0],convolved)
+draw_plots(whiteNoiseSignal, convolved)
 
 # write_to_file("./files/audio"+str(realAngle)+".wav", convolved)
 #soundfile.write("./files/audio"+str(realAngle)+".wav", convolved, sampleRate, format="WAV", subtype="PCM_24")
