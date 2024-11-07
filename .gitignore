@@ -1,1 +1,6 @@
+./files/*DB/
 ./files/*DB
+./files/*DB/**
+/files/*DB/
+/files/*DB
+/files/*DB/**
